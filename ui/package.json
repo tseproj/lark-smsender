@@ -20,11 +20,11 @@
   "devDependencies": {
     "@antfu/eslint-config": "^2.21.1",
     "@arco-design/web-vue": "^2.55.3",
-    "@arco-iconbox/vue-lark-base-plugin": "^0.1.0",
     "@arco-plugins/vite-vue": "^1.4.5",
     "@arco-themes/vue-lark-base-plugin": "^0.0.1",
     "@vitejs/plugin-vue": "^5.0.5",
     "eslint": "9.5.0",
+    "less": "^4.2.0",
     "typescript": "^5.5.2",
     "unplugin-vue-i18n": "^1.0.11",
     "vite": "^5.3.2",

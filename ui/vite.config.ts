@@ -10,7 +10,6 @@ export default defineConfig({
     vue(),
     vitePluginForArco({
       theme: '@arco-themes/vue-lark-base-plugin',
-      iconBox: '@arco-iconbox/vue-lark-base-plugin',
     }),
   ],
   server: {
@@ -29,5 +28,10 @@ export default defineConfig({
       },
     },
     emptyOutDir: true, // build前清空outdir
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
   },
 })

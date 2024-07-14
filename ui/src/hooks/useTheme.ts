@@ -8,12 +8,12 @@ export function useTheme() {
     const el = document.documentElement
 
     if (theme.value === 'DARK') {
-      document.documentElement.setAttribute('arco-theme', 'dark')
+      document.body.setAttribute('arco-theme', 'dark')
       el.style.setProperty('color', '#fff')
       el.style.setProperty('background-color', '#1A1A1A')
     }
     else if (theme.value === 'LIGHT') {
-      document.documentElement.removeAttribute('arco-theme')
+      document.body.removeAttribute('arco-theme')
       el.style.setProperty('color', '#434343')
       el.style.setProperty('background-color', '#fff')
     }
