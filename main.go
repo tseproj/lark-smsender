@@ -28,6 +28,15 @@ func main() {
 		router.GetAliTemplateList,
 	)
 
+	http.HandleFunc(
+		"/ali/sendSms",
+		router.SendAliSms,
+	)
+	http.HandleFunc(
+		"/ali/sendBatchSms",
+		router.SendBatchAliSms,
+	)
+
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

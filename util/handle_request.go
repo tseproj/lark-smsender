@@ -9,9 +9,17 @@ import (
 type AliRequestData struct {
 	AccessKeyId     string `json:"accessKeyId"`
 	AccessKeySecret string `json:"accessKeySecret"`
-	// Request list
+	// *request list
 	PageIndex *int `json:"pageIndex,omitempty"`
 	// *send sms
+	PhoneNumbers  *string `json:"phoneNumbers,omitempty"`
+	SignName      *string `json:"signName,omitempty"`
+	TemplateCode  *string `json:"templateCode,omitempty"`
+	TemplateParam *string `json:"templateParam,omitempty"`
+	// *batch send sms
+	PhoneNumberJson   *string `json:"phoneNumbersJson,omitempty"`
+	SignNameJson      *string `json:"signNameJson,omitempty"`
+	TemplateParamJson *string `json:"templateParamJson,omitempty"`
 }
 
 type HandleAliRequestResult struct {
