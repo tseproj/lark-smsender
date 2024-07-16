@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	// dysmsapi20170525  "github.com/alibabacloud-go/dysmsapi-20170525/v4/client"
+  // openapi  "github.com/alibabacloud-go/darabonba-openapi/v2/client"
+  // util  "github.com/alibabacloud-go/tea-utils/v2/service"
 )
 
 func handleIndex(w http.ResponseWriter, r *http.Request) {
