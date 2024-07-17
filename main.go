@@ -10,9 +10,12 @@ import (
 func main() {
 	fmt.Println("http server started on port 8080")
 
-	http.HandleFunc(
+	http.Handle(
 		"/assets/",
-		router.ServeAssets,
+		http.StripPrefix(
+			"/assets/",
+			http.FileServer(http.Dir("static/assets")),
+		),
 	)
 	http.HandleFunc(
 		"/",

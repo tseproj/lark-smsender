@@ -18,11 +18,3 @@ func RenderFrontend(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
-
-// ServeAssets start assets file server
-func ServeAssets(w http.ResponseWriter, r *http.Request) {
-	http.StripPrefix(
-		"/assets/",
-		http.FileServer(http.Dir("static/assets")),
-	)
-}
