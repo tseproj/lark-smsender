@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { FieldType, bitable } from '@lark-base-open/js-sdk'
 import type { IFieldMeta } from '@lark-base-open/js-sdk'
 import InfoTip from '@/components/InfoTip.vue'
+import { requestSignList, requestTemplateList } from '@/utils/useAlicloudApi'
 
 const form = ref({
   serviceType: 'aliyun',
@@ -19,8 +20,8 @@ const form = ref({
 const isLoading = ref(false)
 const fieldOptions = ref<IFieldMeta[]>([])
 const phoneOptions = ref<IFieldMeta[]>([])
-// const aliyunSignatureOptions = ref([])
-// const aliyunTemplateOptions = ref([])
+const aliyunSignatureOptions = ref([])
+const aliyunTemplateOptions = ref([])
 
 async function setFieldList(): Promise<void> {
   const table = await bitable.base.getActiveTable()
@@ -28,6 +29,20 @@ async function setFieldList(): Promise<void> {
   const fieldMetaList: IFieldMeta[] = await view.getFieldMetaList()
   fieldOptions.value = fieldMetaList
   phoneOptions.value = fieldMetaList.filter(item => item.type === FieldType.Text || item.type === FieldType.Phone)
+}
+
+async function setSignTemplateList() {
+  if (form.value.serviceType === 'aliyun') {
+    if (form.value.aliyun.id !== '' || form.value.aliyun.secret !== '') {
+      const signResp = await requestSignList({ accessKeyId: form.value.aliyun.id, accessKeySecret: form.value.aliyun.secret })
+      if (signResp.data.Message === 'OK')
+        aliyunSignatureOptions.value = signResp.data
+      const templateResp = await requestTemplateList({ accessKeyId: form.value.aliyun.id, accessKeySecret: form.value.aliyun.secret })
+      if (templateResp.data.Message === 'OK')
+        aliyunTemplateOptions.value = templateResp.data
+      console.log(signResp, templateResp)
+    }
+  }
 }
 
 onMounted(async () => {
@@ -61,6 +76,7 @@ onMounted(async () => {
           v-model="form.aliyun.id"
           placeholder="请粘贴阿里云账户 AccessKey ID"
           allow-clear
+          @change="setSignTemplateList"
         />
       </a-form-item>
       <a-form-item
@@ -71,6 +87,7 @@ onMounted(async () => {
           v-model="form.aliyun.secret"
           placeholder="请粘贴阿里云账户 AccessKey Secret"
           allow-clear
+          @change="setSignTemplateList"
         />
       </a-form-item>
       <a-form-item
@@ -82,6 +99,7 @@ onMounted(async () => {
           placeholder="请选择要使用的短信签名"
         >
           <a-option />
+          <a-option value="阿里云短信测试" label="阿里云短信测试" />
         </a-select>
       </a-form-item>
       <a-form-item
@@ -93,6 +111,7 @@ onMounted(async () => {
           placeholder="请选择要配置的短信模板"
         >
           <a-option />
+          <a-option value="SMS_154950909" label="测试专用模板" />
         </a-select>
       </a-form-item>
     </div>
