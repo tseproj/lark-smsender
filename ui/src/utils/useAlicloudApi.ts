@@ -26,7 +26,7 @@ async function requestSignList({ accessKeyId, accessKeySecret }: GetData): Promi
   }
 
   try {
-    const response = await axios.post('/ali/getSignList', data)
+    const response = await axios.post('/getSignList', data)
     return response.data.body
   }
   catch (error) {
@@ -41,7 +41,7 @@ async function requestTemplateList({ accessKeyId, accessKeySecret }: GetData): P
   }
 
   try {
-    const response = await axios.post('/ali/getTemplateList', data)
+    const response = await axios.post('/getTemplateList', data)
     return response.data.body
   }
   catch (error) {
@@ -60,26 +60,7 @@ async function sendSms({ accessKeyId, accessKeySecret, phoneNumbers, signName, t
   }
 
   try {
-    const response = await axios.post('/ali/sendSms', data)
-    return response.data.body
-  }
-  catch (error) {
-    throw new Error(`Request failed: ${error}`)
-  }
-}
-
-async function sendBatchSms({ accessKeyId, accessKeySecret, phoneNumberJson, signNameJson, templateCode, templateParamJson }: SendBatchData): Promise<AxiosResponse> {
-  const data = {
-    accessKeyId,
-    accessKeySecret,
-    phoneNumberJson,
-    signNameJson,
-    templateCode,
-    templateParamJson,
-  }
-
-  try {
-    const response = await axios.post('/ali/sendBatchSms', data)
+    const response = await axios.post('/sendSms', data)
     return response.data.body
   }
   catch (error) {
@@ -91,5 +72,4 @@ export {
   requestSignList,
   requestTemplateList,
   sendSms,
-  sendBatchSms,
 }
