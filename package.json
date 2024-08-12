@@ -2,7 +2,7 @@
   "name": "lark-smsender",
   "private": true,
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch index.ts",
     "build": "cd ui && pnpm build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
