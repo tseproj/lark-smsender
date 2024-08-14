@@ -1,9 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { FieldType, bitable } from '@lark-base-open/js-sdk'
+import { FieldType, ToastType, bitable } from '@lark-base-open/js-sdk'
 import type { IFieldMeta } from '@lark-base-open/js-sdk'
 import InfoTip from '@/components/InfoTip.vue'
+import Empty from '@/components/Empty.vue'
 import { requestSignList, requestTemplateList } from '@/utils/useAlicloudApi'
+
+interface SignOption {
+  signName: string
+}
+interface TemplateOption {
+  templateCode: string
+  templateName: string
+}
 
 const form = ref({
   serviceType: 'aliyun',
@@ -20,8 +29,8 @@ const form = ref({
 const isLoading = ref(false)
 const fieldOptions = ref<IFieldMeta[]>([])
 const phoneOptions = ref<IFieldMeta[]>([])
-const aliyunSignatureOptions = ref([])
-const aliyunTemplateOptions = ref([])
+const aliyunSignatureOptions = ref<SignOption[]>([])
+const aliyunTemplateOptions = ref<TemplateOption[]>([])
 
 async function setFieldList(): Promise<void> {
   const table = await bitable.base.getActiveTable()
@@ -31,18 +40,29 @@ async function setFieldList(): Promise<void> {
   phoneOptions.value = fieldMetaList.filter(item => item.type === FieldType.Text || item.type === FieldType.Phone)
 }
 
-async function setSignTemplateList() {
-  if (form.value.serviceType === 'aliyun') {
-    if (form.value.aliyun.id !== '' || form.value.aliyun.secret !== '') {
-      const signResp = await requestSignList({ accessKeyId: form.value.aliyun.id, accessKeySecret: form.value.aliyun.secret })
-      if (signResp.data.Message === 'OK')
-        aliyunSignatureOptions.value = signResp.data
-      const templateResp = await requestTemplateList({ accessKeyId: form.value.aliyun.id, accessKeySecret: form.value.aliyun.secret })
-      if (templateResp.data.Message === 'OK')
-        aliyunTemplateOptions.value = templateResp.data
-      console.log(signResp, templateResp)
-    }
+async function setSignTemplateList(refresh?: boolean) {
+  if (form.value.serviceType !== 'aliyun') return
+
+  const { id, secret } = form.value.aliyun
+  if (id === '' && secret === '') return
+
+  if (refresh && (id === '' && secret === '')) {
+    await bitable.ui.showToast({
+      toastType: ToastType.error,
+      message: '请输入正确的阿里云 AccessKey ID 和 AccessKey Secret'
+    })
+    return
   }
+
+  const [signResp, templateResp] = await Promise.all([
+    requestSignList({ accessKeyId: id, accessKeySecret: secret }),
+    requestTemplateList({ accessKeyId: id, accessKeySecret: secret })
+  ])
+
+  aliyunSignatureOptions.value = signResp.data.body.smsSignList
+  aliyunTemplateOptions.value = templateResp.data.body.smsTemplateList
+
+  console.log(signResp, templateResp, aliyunSignatureOptions.value, aliyunTemplateOptions.value)
 }
 
 onMounted(async () => {
@@ -98,8 +118,35 @@ onMounted(async () => {
           v-model="form.aliyun.signature"
           placeholder="请选择要使用的短信签名"
         >
-          <a-option />
-          <a-option value="阿里云短信测试" label="阿里云短信测试" />
+          <a-option
+            v-for="(sign, index) of aliyunSignatureOptions"
+            :key="index"
+            :value="sign.signName"
+            :label="sign.signName"
+          />
+          <a-option
+            v-if="form.aliyun.id !== '' && form.aliyun.secret !== ''"
+            value="阿里云短信测试"
+            label="阿里云短信测试"
+          />
+          <template #empty>
+            <Empty
+              title="请输入阿里云 AccessKey ID 和 AccessKey Secret 以继续"
+              subtitle="请确保您已在阿里云控制台创建了短信签名，可使用「阿里云短信测试」进行短信发送测试"
+            />
+          </template>
+          <template #footer>
+            <div>
+              <a-button
+                type="text"
+                size="small"
+                long
+                @click="setSignTemplateList(true)"
+              >
+                刷新
+              </a-button>
+            </div>
+          </template>
         </a-select>
       </a-form-item>
       <a-form-item
@@ -110,8 +157,35 @@ onMounted(async () => {
           v-model="form.aliyun.template"
           placeholder="请选择要配置的短信模板"
         >
-          <a-option />
-          <a-option value="SMS_154950909" label="测试专用模板" />
+          <a-option
+            v-for="(template, index) of aliyunTemplateOptions"
+            :key="index"
+            :value="template.templateCode"
+            :label="template.templateName"
+          />
+          <a-option
+            v-if="form.aliyun.id !== '' && form.aliyun.secret !== ''"
+            value="SMS_154950909"
+            label="测试专用模板"
+          />
+          <template #empty>
+            <Empty
+              title="请输入阿里云 AccessKey ID 和 AccessKey Secret 以继续"
+              subtitle="请确保您已在阿里云控制台创建了短信模板，可使用「阿里云短信测试」进行短信发送测试"
+            />
+          </template>
+          <template #footer>
+            <div>
+              <a-button
+                type="text"
+                size="small"
+                long
+                @click="setSignTemplateList(true)"
+              >
+                刷新
+              </a-button>
+            </div>
+          </template>
         </a-select>
       </a-form-item>
     </div>

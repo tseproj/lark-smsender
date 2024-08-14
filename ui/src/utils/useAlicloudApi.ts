@@ -13,12 +13,6 @@ interface SendData extends GetData {
   templateParam: string
 }
 
-interface SendBatchData extends GetData {
-  phoneNumberJson: string
-  signNameJson: string
-  templateParamJson: string
-}
-
 async function requestSignList({ accessKeyId, accessKeySecret }: GetData): Promise<AxiosResponse> {
   const data = {
     accessKeyId,
@@ -27,7 +21,7 @@ async function requestSignList({ accessKeyId, accessKeySecret }: GetData): Promi
 
   try {
     const response = await axios.post('/getSignList', data)
-    return response.data.body
+    return response
   }
   catch (error) {
     throw new Error(`Request failed: ${error}`)
@@ -42,7 +36,7 @@ async function requestTemplateList({ accessKeyId, accessKeySecret }: GetData): P
 
   try {
     const response = await axios.post('/getTemplateList', data)
-    return response.data.body
+    return response
   }
   catch (error) {
     throw new Error(`Request failed: ${error}`)
@@ -61,7 +55,7 @@ async function sendSms({ accessKeyId, accessKeySecret, phoneNumbers, signName, t
 
   try {
     const response = await axios.post('/sendSms', data)
-    return response.data.body
+    return response
   }
   catch (error) {
     throw new Error(`Request failed: ${error}`)
