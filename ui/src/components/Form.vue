@@ -80,6 +80,9 @@ async function handleTemplateChange() {
   if (selectedTemplate) {
     const variables = extractTemplateVariables(selectedTemplate.templateContent);
     form.value.aliyun.templateVariables = Object.fromEntries(variables.map(v => [v, null]));
+  } else if (form.value.aliyun.template === 'SMS_154950909') {
+    // 为测试模板添加 code 变量
+    form.value.aliyun.templateVariables = { code: null };
   }
 
   await setSignTemplateList(true);
@@ -187,7 +190,7 @@ onMounted(async () => {
           <a-option
             v-if="form.aliyun.id !== '' && form.aliyun.secret !== ''"
             value="SMS_154950909"
-            label="测试专用模板"
+            label="测试专用模板 (包含 code 变量)"
           />
           <template #empty>
             <Empty
