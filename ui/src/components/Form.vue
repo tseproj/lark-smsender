@@ -12,6 +12,13 @@ interface SignOption {
 interface TemplateOption {
   templateCode: string
   templateName: string
+  templateContent: string
+}
+
+function extractTemplateVariables(templateContent: string): string[] {
+  const regex = /\$\{(\w+)\}/g;
+  const matches = templateContent.match(regex);
+  return matches ? matches.map(match => match.slice(2, -1)) : [];
 }
 
 const form = ref({
@@ -24,6 +31,7 @@ const form = ref({
     secret: '',
     signature: null,
     template: null,
+    templateVariables: {} as Record<string, string | null>,
   },
 })
 const isLoading = ref(false)
@@ -63,6 +71,18 @@ async function setSignTemplateList(refresh?: boolean) {
   aliyunTemplateOptions.value = templateResp.data.body.smsTemplateList
 
   console.log(signResp, templateResp, aliyunSignatureOptions.value, aliyunTemplateOptions.value)
+}
+
+async function handleTemplateChange() {
+  form.value.aliyun.templateVariables = {};
+
+  const selectedTemplate = aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template);
+  if (selectedTemplate) {
+    const variables = extractTemplateVariables(selectedTemplate.templateContent);
+    form.value.aliyun.templateVariables = Object.fromEntries(variables.map(v => [v, null]));
+  }
+
+  await setSignTemplateList(true);
 }
 
 onMounted(async () => {
@@ -156,6 +176,7 @@ onMounted(async () => {
         <a-select
           v-model="form.aliyun.template"
           placeholder="请选择要配置的短信模板"
+          @change="handleTemplateChange"
         >
           <a-option
             v-for="(template, index) of aliyunTemplateOptions"
@@ -205,6 +226,29 @@ onMounted(async () => {
         />
       </a-select>
     </a-form-item>
+    <div v-if="form.aliyun.template">
+      <template
+        v-for="(_, key) in form.aliyun.templateVariables"
+        :key="key"
+      >
+        <a-form-item
+          :field="`${key}Field`"
+          :label="`${key} 字段`"
+        >
+          <a-select
+            v-model="form.aliyun.templateVariables[key]"
+            :placeholder="`请选择要发送短信使用的 ${key} 对应内容字段`"
+          >
+            <a-option
+              v-for="(item, index) of fieldOptions"
+              :key="index"
+              :value="item.id"
+              :label="item.name"
+            />
+          </a-select>
+        </a-form-item>
+      </template>
+    </div>
     <a-form-item
       field="outputOption"
       hide-label
