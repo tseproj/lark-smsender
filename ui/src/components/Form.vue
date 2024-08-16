@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { FieldType, ToastType, bitable } from '@lark-base-open/js-sdk'
 import type { IFieldMeta } from '@lark-base-open/js-sdk'
 import InfoTip from '@/components/InfoTip.vue'
@@ -35,6 +35,17 @@ const form = ref({
   },
 })
 const isLoading = ref(false)
+const isDisabled = computed(() => {
+  const isTestTemplate = form.value.aliyun.template === 'SMS_154950909';
+  return form.value.aliyun.id === '' || form.value.aliyun.secret === '' ||
+    form.value.aliyun.signature === null || form.value.aliyun.template === null ||
+    (isTestTemplate && form.value.aliyun.templateVariables.code === null) ||
+    (!isTestTemplate &&
+      aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template) &&
+      Object.keys(form.value.aliyun.templateVariables).length > 0 &&
+      Object.values(form.value.aliyun.templateVariables).some(field => field === null)) ||
+    form.value.phoneNumberField === null;
+})
 const fieldOptions = ref<IFieldMeta[]>([])
 const phoneOptions = ref<IFieldMeta[]>([])
 const aliyunSignatureOptions = ref<SignOption[]>([])
@@ -88,6 +99,11 @@ async function handleTemplateChange() {
   await setSignTemplateList(true);
 }
 
+async function handleSubmit() {
+  isLoading.value = true
+
+}
+
 onMounted(async () => {
   await setFieldList()
 })
@@ -98,6 +114,7 @@ onMounted(async () => {
     :model="form"
     layout="vertical"
     :disabled="isLoading"
+    @submit="handleSubmit"
   >
     <a-form-item hide-label>
       <a-alert :show-icon="false">
@@ -190,7 +207,7 @@ onMounted(async () => {
           <a-option
             v-if="form.aliyun.id !== '' && form.aliyun.secret !== ''"
             value="SMS_154950909"
-            label="测试专用模板 (包含 code 变量)"
+            label="测试专用模板"
           />
           <template #empty>
             <Empty
@@ -272,6 +289,7 @@ onMounted(async () => {
         html-type="submit"
         type="primary"
         :loading="isLoading"
+        :disabled="isDisabled"
       >
         确 认
       </a-button>
