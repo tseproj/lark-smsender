@@ -11,6 +11,5 @@
     "declarationMap": true,
     "outDir": "./dist"
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"],
   "exclude": ["node_modules", "*.test.*", "./dist/**/*"]
 }

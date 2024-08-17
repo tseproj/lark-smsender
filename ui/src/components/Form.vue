@@ -16,9 +16,9 @@ interface TemplateOption {
 }
 
 function extractTemplateVariables(templateContent: string): string[] {
-  const regex = /\$\{(\w+)\}/g;
-  const matches = templateContent.match(regex);
-  return matches ? matches.map(match => match.slice(2, -1)) : [];
+  const regex = /\$\{(\w+)\}/g
+  const matches = templateContent.match(regex)
+  return matches ? matches.map(match => match.slice(2, -1)) : []
 }
 
 const form = ref({
@@ -36,15 +36,15 @@ const form = ref({
 })
 const isLoading = ref(false)
 const isDisabled = computed(() => {
-  const isTestTemplate = form.value.aliyun.template === 'SMS_154950909';
-  return form.value.aliyun.id === '' || form.value.aliyun.secret === '' ||
-    form.value.aliyun.signature === null || form.value.aliyun.template === null ||
-    (isTestTemplate && form.value.aliyun.templateVariables.code === null) ||
-    (!isTestTemplate &&
-      aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template) &&
-      Object.keys(form.value.aliyun.templateVariables).length > 0 &&
-      Object.values(form.value.aliyun.templateVariables).some(field => field === null)) ||
-    form.value.phoneNumberField === null;
+  const isTestTemplate = form.value.aliyun.template === 'SMS_154950909'
+  return form.value.aliyun.id === '' || form.value.aliyun.secret === ''
+    || form.value.aliyun.signature === null || form.value.aliyun.template === null
+    || (isTestTemplate && form.value.aliyun.templateVariables.code === null)
+    || (!isTestTemplate
+    && aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template)
+    && Object.keys(form.value.aliyun.templateVariables).length > 0
+    && Object.values(form.value.aliyun.templateVariables).includes(null))
+    || form.value.phoneNumberField === null
 })
 const fieldOptions = ref<IFieldMeta[]>([])
 const phoneOptions = ref<IFieldMeta[]>([])
@@ -60,22 +60,24 @@ async function setFieldList(): Promise<void> {
 }
 
 async function setSignTemplateList(refresh?: boolean) {
-  if (form.value.serviceType !== 'aliyun') return
+  if (form.value.serviceType !== 'aliyun')
+    return
 
   const { id, secret } = form.value.aliyun
-  if (id === '' && secret === '') return
+  if (id === '' && secret === '')
+    return
 
   if (refresh && (id === '' && secret === '')) {
     await bitable.ui.showToast({
       toastType: ToastType.error,
-      message: '请输入正确的阿里云 AccessKey ID 和 AccessKey Secret'
+      message: '请输入正确的阿里云 AccessKey ID 和 AccessKey Secret',
     })
     return
   }
 
   const [signResp, templateResp] = await Promise.all([
     requestSignList({ accessKeyId: id, accessKeySecret: secret }),
-    requestTemplateList({ accessKeyId: id, accessKeySecret: secret })
+    requestTemplateList({ accessKeyId: id, accessKeySecret: secret }),
   ])
 
   aliyunSignatureOptions.value = signResp.data.body.smsSignList
@@ -85,18 +87,19 @@ async function setSignTemplateList(refresh?: boolean) {
 }
 
 async function handleTemplateChange() {
-  form.value.aliyun.templateVariables = {};
+  form.value.aliyun.templateVariables = {}
 
-  const selectedTemplate = aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template);
+  const selectedTemplate = aliyunTemplateOptions.value.find(t => t.templateCode === form.value.aliyun.template)
   if (selectedTemplate) {
-    const variables = extractTemplateVariables(selectedTemplate.templateContent);
-    form.value.aliyun.templateVariables = Object.fromEntries(variables.map(v => [v, null]));
-  } else if (form.value.aliyun.template === 'SMS_154950909') {
+    const variables = extractTemplateVariables(selectedTemplate.templateContent)
+    form.value.aliyun.templateVariables = Object.fromEntries(variables.map(v => [v, null]))
+  }
+  else if (form.value.aliyun.template === 'SMS_154950909') {
     // 为测试模板添加 code 变量
-    form.value.aliyun.templateVariables = { code: null };
+    form.value.aliyun.templateVariables = { code: null }
   }
 
-  await setSignTemplateList(true);
+  await setSignTemplateList(true)
 }
 
 async function handleSubmit() {
@@ -110,10 +113,11 @@ async function handleSubmit() {
       try {
         phoneNumber = await phoneNumberField.getValue(recordId)
         console.log(phoneNumber)
-      } catch (error) {
+      }
+      catch (error) {
         continue
       }
-      let templateVariables: Record<string, string> = {}
+      const templateVariables: Record<string, string> = {}
       for (const [key, fieldId] of Object.entries(form.value.aliyun.templateVariables)) {
         if (fieldId) {
           console.log(fieldId)
@@ -125,15 +129,19 @@ async function handleSubmit() {
             if (typeof value === 'object' && value !== null) {
               if (Array.isArray(value)) {
                 templateVariables[key] = value[0]?.text || ''
-              } else if ('text' in value) {
+              }
+              else if ('text' in value) {
                 templateVariables[key] = value.text
-              } else {
+              }
+              else {
                 templateVariables[key] = JSON.stringify(value)
               }
-            } else {
+            }
+            else {
               templateVariables[key] = String(value)
             }
-          } catch (error) {
+          }
+          catch (error) {
             console.error(`获取字段 ${key} 的值时出错:`, error)
             templateVariables[key] = ''
           }
@@ -152,11 +160,11 @@ async function handleSubmit() {
         console.log(query)
         const resp = await sendSms(query)
         console.log(resp)
-        let code = resp.data.body.code
-        if (code !== "OK") {
+        const code = resp.data.body.code
+        if (code !== 'OK') {
           await bitable.ui.showToast({
             toastType: ToastType.error,
-            message: resp.data.body.message
+            message: resp.data.body.message,
           })
         }
       }
@@ -165,7 +173,7 @@ async function handleSubmit() {
   isLoading.value = false
   await bitable.ui.showToast({
     toastType: ToastType.success,
-    message: '发送任务已完成'
+    message: '发送任务已完成',
   })
 }
 
