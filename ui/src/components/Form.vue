@@ -4,7 +4,7 @@ import { FieldType, ToastType, bitable } from '@lark-base-open/js-sdk'
 import type { IFieldMeta } from '@lark-base-open/js-sdk'
 import InfoTip from '@/components/InfoTip.vue'
 import Empty from '@/components/Empty.vue'
-import { requestSignList, requestTemplateList } from '@/utils/useAlicloudApi'
+import { requestSignList, requestTemplateList, sendSms } from '@/utils/useAlicloudApi'
 
 interface SignOption {
   signName: string
@@ -101,7 +101,72 @@ async function handleTemplateChange() {
 
 async function handleSubmit() {
   isLoading.value = true
-
+  const table = await bitable.base.getActiveTable()
+  const recordList = await table.getRecordIdList()
+  if (form.value.phoneNumberField) {
+    for (const recordId of recordList) {
+      const phoneNumberField = await table.getFieldById(form.value.phoneNumberField)
+      let phoneNumber
+      try {
+        phoneNumber = await phoneNumberField.getValue(recordId)
+        console.log(phoneNumber)
+      } catch (error) {
+        continue
+      }
+      let templateVariables: Record<string, string> = {}
+      for (const [key, fieldId] of Object.entries(form.value.aliyun.templateVariables)) {
+        if (fieldId) {
+          console.log(fieldId)
+          const field = await table.getFieldById(fieldId)
+          let value
+          try {
+            value = await field.getValue(recordId)
+            console.log(value)
+            if (typeof value === 'object' && value !== null) {
+              if (Array.isArray(value)) {
+                templateVariables[key] = value[0]?.text || ''
+              } else if ('text' in value) {
+                templateVariables[key] = value.text
+              } else {
+                templateVariables[key] = JSON.stringify(value)
+              }
+            } else {
+              templateVariables[key] = String(value)
+            }
+          } catch (error) {
+            console.error(`获取字段 ${key} 的值时出错:`, error)
+            templateVariables[key] = ''
+          }
+        }
+      }
+      if (form.value.aliyun.signature && form.value.aliyun.template) {
+        const templateParam = JSON.stringify(templateVariables)
+        const query = {
+          accessKeyId: form.value.aliyun.id,
+          accessKeySecret: form.value.aliyun.secret,
+          phoneNumbers: phoneNumber,
+          signName: form.value.aliyun.signature,
+          templateCode: form.value.aliyun.template,
+          templateParam,
+        }
+        console.log(query)
+        const resp = await sendSms(query)
+        console.log(resp)
+        let code = resp.data.body.code
+        if (code !== "OK") {
+          await bitable.ui.showToast({
+            toastType: ToastType.error,
+            message: resp.data.body.message
+          })
+        }
+      }
+    }
+  }
+  isLoading.value = false
+  await bitable.ui.showToast({
+    toastType: ToastType.success,
+    message: '发送任务已完成'
+  })
 }
 
 onMounted(async () => {
